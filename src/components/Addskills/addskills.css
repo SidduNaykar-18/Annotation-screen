@@ -1,0 +1,17 @@
+.form-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+     
+  }
+  
+  .custom-form {
+    width: 200px; /* Adjust the width as needed */
+    margin-left: 100px;
+    
+  }
+.button-style{
+  margin-right: "15px";
+  background-color:"#222562";
+  color:"white"
+}

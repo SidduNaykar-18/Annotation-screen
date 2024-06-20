@@ -1,0 +1,10 @@
+.form-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Make the container fill the entire viewport height */
+}
+
+.custom-form {
+  width: 400px; /* Adjust the width as needed */
+}
