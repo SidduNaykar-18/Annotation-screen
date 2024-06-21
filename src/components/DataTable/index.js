@@ -24,19 +24,16 @@ const DataTable = () => {
         },
       });
       console.log('Skills API response:', response.data);
-      
-      // Process data to ensure associated_skills are nested properly
-      const processedData = response.data.map(skill => ({
+
+      const processedData = response?.data?.map(skill => ({
         ...skill,
-        associated_skills: skill.associated_skills.map(skillName => ({ name: skillName }))
+        associated_skills: skill?.associated_skills?.map(skillName => ({ name: skillName }))
       }));
 
       setData(processedData);
       setLoading(false);
     } catch (error) {
-      // console.error('Skills API error:', error);
-      setLoading(false); // Turn off loading indicator in case of error
-      // Optionally: Display a message to the user indicating an error occurred
+      setLoading(false); 
     }
   };
 
@@ -48,9 +45,9 @@ const DataTable = () => {
     setIsModalVisible(false);
   };
 
-  const handleAddSkills = () => {
-    setIsModalVisible(false); // Close the modal after handling the action
-    // Implement logic to handle adding skills (submit form data to backend)
+  const handleAddSkills = async () => {
+    setIsModalVisible(false); 
+    await fetchData(); 
   };
 
   const columns = [
@@ -118,6 +115,6 @@ const DataTable = () => {
       </Modal>
     </Layout>
   );
-};  
+};
 
 export default DataTable;

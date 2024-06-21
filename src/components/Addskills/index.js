@@ -5,7 +5,7 @@ import { showNotification } from '../showNotification';
 import { PROJECT_URL } from '../utils/constant';
 import axios from 'axios';
 
-export default function DataSetForm({ onCancel, visible }) {
+const DataSetForm = ({ onCancel, onAdd }) => {
   const [buttonLoading, setButtonLoading] = useState(false);
   const [form] = Form.useForm();
 
@@ -21,25 +21,23 @@ export default function DataSetForm({ onCancel, visible }) {
       'Content-Type': 'application/json',
     };
     
-    
-
     try {
       if (payload) {
         setButtonLoading(true);
-        const response = await axios.post(`${PROJECT_URL}/add_skill`, payload,{headers});
+        const response = await axios.post(`${PROJECT_URL}/add_skill`, payload, { headers });
         console.log('API response:', response);
         setButtonLoading(false);
         showNotification('Success', 'Skill added successfully!', 'success');
         form.resetFields();
-        onCancel(); // Close the modal
+        onCancel();
+        onAdd(); 
       }
 
     } catch (error) {
-      // console.error('API error:', error);
       setButtonLoading(false);
       showNotification('Error', 'Failed to add skill. Please try again later.', 'error');
       form.resetFields();
-      onCancel(); // Close the modal
+      onCancel(); 
     }
   };
 
@@ -99,6 +97,7 @@ export default function DataSetForm({ onCancel, visible }) {
         <Button type='primary' style={{ marginRight: "15px" }} onClick={onCancel}>
           Cancel
         </Button>
+        
         <Button type='primary' htmlType="submit" loading={buttonLoading}>
           {buttonLoading ? 'Adding Skill...' : 'Add Skills'}
         </Button>
@@ -106,4 +105,6 @@ export default function DataSetForm({ onCancel, visible }) {
     </Form>
 
   );
-}
+};
+
+export default DataSetForm;
