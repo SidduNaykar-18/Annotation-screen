@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Input, Form, Select, Modal } from 'antd';
+import { Button, Input, Form, Select } from 'antd';
 import '../Addskills/addskills.css';
 import { showNotification } from '../showNotification';
 import { PROJECT_URL } from '../utils/constant';
@@ -19,7 +19,6 @@ export default function DataSetForm({ onCancel, visible }) {
     };
     const headers = {
       'Content-Type': 'application/json',
-      'Accept': 'application/json, text/plain, */*'
     };
     
     
@@ -36,7 +35,7 @@ export default function DataSetForm({ onCancel, visible }) {
       }
 
     } catch (error) {
-      console.error('API error:', error);
+      // console.error('API error:', error);
       setButtonLoading(false);
       showNotification('Error', 'Failed to add skill. Please try again later.', 'error');
       form.resetFields();
@@ -52,7 +51,7 @@ export default function DataSetForm({ onCancel, visible }) {
       initialValues={{ remember: true }}
       onFinish={onFinish}
     >
-      <div style={{ marginBottom: "20px" }}><h3>ADD SKILLS TO DATABASE</h3></div>
+      <div style={{ marginBottom: "20px" }}><h3>ADD SKILLS</h3></div>
       <Form.Item
         label="Category Name"
         name="categoryName"

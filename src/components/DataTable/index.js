@@ -1,38 +1,44 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Layout, Modal, Table, Spin, Typography, Empty } from 'antd'; // Import Spin and Typography for loading indicator and no data message
+import { Button, Layout, Modal, Table, Spin, Empty } from 'antd';
 import DataSetForm from '../Addskills';
 import axios from 'axios';
 import { PROJECT_URL } from '../utils/constant';
 
-const { Text } = Typography;
-
 const DataTable = () => {
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true); // State for loading indicator
+  const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
+
   useEffect(() => {
     fetchData();
   }, []);
-  
-  
+
   const fetchData = async () => {
     try {
       const response = await axios.get(`${PROJECT_URL}/skills`, {
         headers: {
           'Content-Type': 'application/json',
+          'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': '*',
         },
       });
-      console.log('Skills API response:', response);
-      setData(response.data);
-      setLoading(false); // Turn off loading indicator
+      console.log('Skills API response:', response.data);
+      
+      // Process data to ensure associated_skills are nested properly
+      const processedData = response.data.map(skill => ({
+        ...skill,
+        associated_skills: skill.associated_skills.map(skillName => ({ name: skillName }))
+      }));
+
+      setData(processedData);
+      setLoading(false);
     } catch (error) {
-      console.error('Skills API error:', error);
+      // console.error('Skills API error:', error);
       setLoading(false); // Turn off loading indicator in case of error
+      // Optionally: Display a message to the user indicating an error occurred
     }
   };
-  
-
-  
 
   const handleOpenModal = () => {
     setIsModalVisible(true);
@@ -52,7 +58,7 @@ const DataTable = () => {
       title: <span style={{ color: '#1890ff' }}>Sno</span>,
       dataIndex: 'sno',
       key: 'sno',
-      render: (text, record, index) => index + 1, // Render serial numbers starting from 1
+      render: (text, record, index) => index + 1,
     },
     {
       title: <span style={{ color: '#1890ff' }}>Category</span>,
@@ -61,8 +67,8 @@ const DataTable = () => {
     },
     {
       title: <span style={{ color: '#1890ff' }}>Skill Name</span>,
-      dataIndex: 'skill_name',
-      key: 'skill_name',
+      dataIndex: 'skill',
+      key: 'skill',
     },
     {
       title: <span style={{ color: '#1890ff' }}>Associated Skills</span>,
@@ -70,8 +76,8 @@ const DataTable = () => {
       key: 'associated_skills',
       render: associatedSkills => (
         <ul>
-          {associatedSkills && associatedSkills.sort().map(skill => (
-            <li key={skill}>{skill}</li>
+          {associatedSkills && associatedSkills.map(skill => (
+            <li key={skill.name}>{skill.name}</li>
           ))}
         </ul>
       ),
@@ -90,16 +96,14 @@ const DataTable = () => {
         <div style={{ border: '1px solid black', padding: '10px', overflowY: 'scroll', maxHeight: '600px', scrollbarWidth: 'thin' }}>
           {loading ? (
             <div style={{ textAlign: 'center', marginTop: '20px' }}>
-              <Spin  indicator =""size="large" />
+              <Spin size="large" />
             </div>
           ) : data.length === 0 ? (
             <div style={{ textAlign: 'center', marginTop: '20px' }}>
-
               <Empty description="No skills Found" />
             </div>
           ) : (
-            <Table dataSource={data} columns={columns} bordered={true} headerClassName="custom-header"
-              bodyStyle={{ fontSize: '16px', backgroundColor: '#f0f2f5' }} />
+            <Table dataSource={data} columns={columns} bordered={true} headerClassName="custom-header" bodyStyle={{ fontSize: '16px', backgroundColor: '#f0f2f5' }} />
           )}
         </div>
       </Layout.Content>
@@ -114,6 +118,6 @@ const DataTable = () => {
       </Modal>
     </Layout>
   );
-};
+};  
 
 export default DataTable;
