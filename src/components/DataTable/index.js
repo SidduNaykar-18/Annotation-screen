@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Layout, Modal, Table, Spin, Empty } from 'antd';
+import { Button, Layout, Modal, Table, Spin, Empty, Tag } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
 import DataSetForm from '../Addskills';
 import axios from 'axios';
@@ -52,18 +52,18 @@ const DataTable = () => {
   };
 
   const columns = [
-    // {
-    //   title: <span style={{ color: '#1890ff' }}>Sno</span>,
-    //   dataIndex: 'sno',
-    //   key: 'sno',
-      
-    // }, 
     {
-      title: <span style={{ color: '#1890ff' }}>Category</span>,
-      dataIndex: 'category',
-      key: 'category',
+      title: <span style={{ color: '#1890ff' }}>Sno</span>,
+      dataIndex: 'sno',
+      key: 'sno',
       render: (text, record, index) => index + 1,
-    },
+    }, 
+    // {
+    //   title: <span style={{ color: '#1890ff' }}>Category</span>,
+    //   dataIndex: 'category',
+    //   key: 'category',
+    //   render: (text, record, index) => index + 1,
+    // },
     {
       title: <span style={{ color: '#1890ff' }}>Skill Name</span>,
       dataIndex: 'skill',
@@ -76,7 +76,7 @@ const DataTable = () => {
       render: associatedSkills => (
         <ul>
           {associatedSkills && associatedSkills.map(skill => (
-            <li key={skill.name}>{skill.name}</li>
+            <Tag key={skill.name}>{skill.name}</Tag>
           ))}
         </ul>
       ),
