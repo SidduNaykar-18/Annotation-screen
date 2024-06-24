@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Layout, Modal, Table, Spin, Empty } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
 import DataSetForm from '../Addskills';
 import axios from 'axios';
 import { PROJECT_URL } from '../utils/constant';
@@ -56,7 +57,7 @@ const DataTable = () => {
       dataIndex: 'sno',
       key: 'sno',
       render: (text, record, index) => index + 1,
-    },
+    }, 
     {
       title: <span style={{ color: '#1890ff' }}>Category</span>,
       dataIndex: 'category',
@@ -84,7 +85,7 @@ const DataTable = () => {
   return (
     <Layout>
       <Layout.Header style={{ backgroundColor: '#001529', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ color: '#fff', margin: 0 }}>Skills From Database</h2>
+        <h2 style={{ color: '#fff', margin: 0 }}>Skills Database</h2>
         <div>
           <Button type="primary" onClick={handleOpenModal}> Add Skills</Button>
         </div>
@@ -93,7 +94,8 @@ const DataTable = () => {
         <div style={{ border: '1px solid black', padding: '10px', overflowY: 'scroll', maxHeight: '600px', scrollbarWidth: 'thin' }}>
           {loading ? (
             <div style={{ textAlign: 'center', marginTop: '20px' }}>
-              <Spin size="large" />
+              <Spin indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} />
+              <p>Please wait....</p>
             </div>
           ) : data.length === 0 ? (
             <div style={{ textAlign: 'center', marginTop: '20px' }}>
