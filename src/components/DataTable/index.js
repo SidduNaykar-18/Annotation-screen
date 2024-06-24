@@ -52,16 +52,17 @@ const DataTable = () => {
   };
 
   const columns = [
-    {
-      title: <span style={{ color: '#1890ff' }}>Sno</span>,
-      dataIndex: 'sno',
-      key: 'sno',
-      render: (text, record, index) => index + 1,
-    }, 
+    // {
+    //   title: <span style={{ color: '#1890ff' }}>Sno</span>,
+    //   dataIndex: 'sno',
+    //   key: 'sno',
+      
+    // }, 
     {
       title: <span style={{ color: '#1890ff' }}>Category</span>,
       dataIndex: 'category',
       key: 'category',
+      render: (text, record, index) => index + 1,
     },
     {
       title: <span style={{ color: '#1890ff' }}>Skill Name</span>,

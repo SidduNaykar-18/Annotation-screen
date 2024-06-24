@@ -20,7 +20,7 @@ const DataSetForm = ({ onCancel, onAdd }) => {
     const headers = {
       'Content-Type': 'application/json',
     };
-    
+
     try {
       if (payload) {
         setButtonLoading(true);
@@ -30,14 +30,14 @@ const DataSetForm = ({ onCancel, onAdd }) => {
         showNotification('Success', 'Skill added successfully!', 'success');
         form.resetFields();
         onCancel();
-        onAdd(); 
+        onAdd();
       }
 
     } catch (error) {
       setButtonLoading(false);
       showNotification('Error', 'Failed to add skill. Please try again later.', 'error');
       form.resetFields();
-      onCancel(); 
+      onCancel();
     }
   };
 
@@ -50,7 +50,7 @@ const DataSetForm = ({ onCancel, onAdd }) => {
       onFinish={onFinish}
     >
       <div style={{ marginBottom: "20px" }}><h3>ADD SKILLS</h3></div>
-      <Form.Item
+      {/* <Form.Item
         label="Category Name"
         name="categoryName"
         rules={[
@@ -61,7 +61,7 @@ const DataSetForm = ({ onCancel, onAdd }) => {
         ]}
       >
         <Input size="large" placeholder="Enter Category" maxLength={50} />
-      </Form.Item>
+      </Form.Item> */}
 
       <Form.Item
         label="Technology Name"
@@ -97,7 +97,7 @@ const DataSetForm = ({ onCancel, onAdd }) => {
         <Button type='primary' style={{ marginRight: "15px" }} onClick={onCancel}>
           Cancel
         </Button>
-        
+
         <Button type='primary' htmlType="submit" loading={buttonLoading}>
           {buttonLoading ? 'Adding Skill...' : 'Add Skills'}
         </Button>
