@@ -1,14 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { Button, Layout, Modal, Table, Spin, Empty, Tag } from 'antd';
-import { LoadingOutlined } from '@ant-design/icons';
-import DataSetForm from '../Addskills';
+import React, { useState, useEffect } from 'react';
+import { GraphCanvas } from 'reagraph';
 import axios from 'axios';
+import { Modal, Spin, Empty, Layout, Button, Input } from 'antd';
 import { PROJECT_URL } from '../utils/constant';
+import DataSetForm from '../Addskills';
+
+const { Header, Content } = Layout;
 
 const DataTable = () => {
-  const [data, setData] = useState([]);
+  const [graphData, setGraphData] = useState({ nodes: [], edges: [] });
   const [loading, setLoading] = useState(true);
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -16,108 +20,181 @@ const DataTable = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${PROJECT_URL}/skills`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': '*',
-        },
-      });
-      console.log('Skills API response:', response.data);
-
-      const processedData = response?.data?.map(skill => ({
-        ...skill,
-        associated_skills: skill?.associated_skills?.map(skillName => ({ name: skillName }))
-      }));
-
-      setData(processedData);
+      const response = await axios.get(`${PROJECT_URL}/skills`);
+      const skillsData = response.data;
+      const { nodes, edges } = transformData(skillsData);
+      setGraphData({ nodes, edges });
       setLoading(false);
     } catch (error) {
-      setLoading(false); 
+      console.error('Error fetching skills data:', error);
+      setLoading(false);
     }
   };
 
-  const handleOpenModal = () => {
-    setIsModalVisible(true);
+  const transformData = (skillsData) => {
+    const nodes = [];
+    const edges = [];
+
+    skillsData.forEach((skill, index) => {
+      const skillNode = {
+        id: `n-${index + 1}`,
+        label: skill.skill,
+        data: skill,
+        isSkillNode: true 
+      };
+      nodes.push(skillNode);
+
+      skill.associated_skills.forEach((associatedSkill, subIndex) => {
+        const subchildNode = {
+          id: `n-${index + 1}-${subIndex + 1}`,
+          label: associatedSkill,
+          parent: skillNode.id,
+          isSkillNode: false 
+        };
+        nodes.push(subchildNode);
+
+        const edge = {
+          id: `e-${index + 1}-${subIndex + 1}`,
+          source: skillNode.id,
+          target: subchildNode.id,
+          label: `Associated with ${associatedSkill}`
+        };
+        edges.push(edge);
+      });
+    });
+
+    return { nodes, edges };
   };
 
-  const handleCloseModal = () => {
-    setIsModalVisible(false);
+  const handleNodeClick = (node) => {
+    const clickedNode = graphData.nodes.find(n => n.id === node.id);
+    if (clickedNode) {
+      setSelectedNode(clickedNode);
+      setModalVisible(true);
+    }
   };
 
-  const handleAddSkills = async () => {
-    setIsModalVisible(false); 
-    await fetchData(); 
+  const handleModalClose = () => {
+    setModalVisible(false);
   };
 
-  const columns = [
-    {
-      title: <span style={{ color: '#1890ff' }}>Sno</span>,
-      dataIndex: 'sno',
-      key: 'sno',
-      render: (text, record, index) => index + 1,
-    }, 
-    // {
-    //   title: <span style={{ color: '#1890ff' }}>Category</span>,
-    //   dataIndex: 'category',
-    //   key: 'category',
-    //   render: (text, record, index) => index + 1,
-    // },
-    {
-      title: <span style={{ color: '#1890ff' }}>Skill Name</span>,
-      dataIndex: 'skill',
-      key: 'skill',
-    },
-    {
-      title: <span style={{ color: '#1890ff' }}>Associated Skills</span>,
-      dataIndex: 'associated_skills',
-      key: 'associated_skills',
-      render: associatedSkills => (
-        <ul>
-          {associatedSkills && associatedSkills.map(skill => (
-            <Tag key={skill.name}>{skill.name}</Tag>
-          ))}
-        </ul>
-      ),
-    },
-  ];
+  const handleAddSkillsClick = () => {
+    setModalVisible(true);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value.toLowerCase());
+  };
+
+  const filterNodesAndEdges = () => {
+    const filteredNodes = graphData.nodes.filter(node =>
+      node.label.toLowerCase().includes(searchTerm) || 
+      (
+        graphData.nodes.some(parentNode =>
+          parentNode.id === node.parent &&
+          parentNode.isSkillNode && 
+          parentNode.label.toLowerCase().includes(searchTerm)
+        )
+      )
+    );
+
+    const filteredEdges = graphData.edges.filter(edge =>
+      filteredNodes.some(node =>
+        edge.source === node.id || edge.target === node.id
+      )
+    );
+
+    return { nodes: filteredNodes, edges: filteredEdges };
+  };
+
+  const { nodes: filteredNodes, edges: filteredEdges } = filterNodesAndEdges();
 
   return (
-    <Layout>
-      <Layout.Header style={{ backgroundColor: '#001529', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ color: '#fff', margin: 0 }}>Skills Database</h2>
-        <div>
-          <Button type="primary" onClick={handleOpenModal}> Add Skills</Button>
+    <Layout style={{ minHeight: '100vh' }}>
+      <Header style={headerStyle}>
+        <div style={headerRightStyle}>
+          <Input.Search
+            placeholder="Search nodes..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            style={searchStyle}
+          />
+          <Button type="primary" onClick={handleAddSkillsClick} style={addButtonStyle}>Add Skills</Button>
         </div>
-      </Layout.Header>
-      <Layout.Content>
-        <div style={{ border: '1px solid black', padding: '10px', overflowY: 'scroll', maxHeight: '600px', scrollbarWidth: 'thin' }}>
-          {loading ? (
-            <div style={{ textAlign: 'center', marginTop: '20px' }}>
-              <Spin indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} />
-              <p>Please wait....</p>
-            </div>
-          ) : data.length === 0 ? (
-            <div style={{ textAlign: 'center', marginTop: '20px' }}>
-              <Empty description="No skills Found" />
-            </div>
-          ) : (
-            <Table dataSource={data} columns={columns} bordered={true} headerClassName="custom-header" bodyStyle={{ fontSize: '16px', backgroundColor: '#f0f2f5' }} />
-          )}
-        </div>
-      </Layout.Content>
-      <Modal
-        visible={isModalVisible}
-        width={500}
-        onCancel={handleCloseModal}
-        footer={null}
-        style={{ maxWidth: '80%', minHeight: '400px' }}
-      >
-        <DataSetForm onCancel={handleCloseModal} onAdd={handleAddSkills} />
-      </Modal>
+      </Header>
+      <Content style={contentStyle}>
+        {loading ? (
+          <div style={loadingStyle}>
+            <Spin size="large" />
+            <p>Loading skills data...</p>
+          </div>
+        ) : filteredNodes.length > 0 ? (
+          <GraphCanvas
+            nodes={filteredNodes}
+            edges={filteredEdges}
+            onNodeClick={handleNodeClick}
+          
+          />
+        ) : (
+          <div style={emptyStyle}>
+            <Empty description="No skills found" />
+          </div>
+        )}
+
+        <Modal
+          title={selectedNode ? selectedNode.label : ''}
+          open={modalVisible}
+          onCancel={handleModalClose}
+          footer={null}
+          width={650}
+        >
+          <DataSetForm onCancel={handleModalClose} onAdd={fetchData} selected={selectedNode} />
+        </Modal>
+      </Content>
     </Layout>
   );
+};
+
+const headerStyle = {
+  backgroundColor: '#001529',
+  padding: '0 20px',
+  zIndex: 1,
+  width: '100%',
+  position: 'fixed',
+  display: 'flex',
+  justifyContent: 'flex-end',
+  alignItems: 'center'
+};
+
+const headerRightStyle = {
+  display: 'flex',
+  alignItems: 'center'
+};
+
+const searchStyle = {
+  width: '300px',
+  height: 'auto',
+  borderRadius: '50px',
+  marginRight: '20px'
+};
+
+const addButtonStyle = {
+  marginLeft: '20px'
+};
+
+const contentStyle = {
+  marginTop: '64px',
+  padding: '20px'
+};
+
+const loadingStyle = {
+  textAlign: 'center',
+  marginTop: '20px'
+};
+
+const emptyStyle = {
+  textAlign: 'center',
+  marginTop: '20px'
 };
 
 export default DataTable;
