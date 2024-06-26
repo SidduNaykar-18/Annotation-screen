@@ -1,19 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Input, Form, Select } from 'antd';
-import '../Addskills/addskills.css';
 import { showNotification } from '../showNotification';
 import { PROJECT_URL } from '../utils/constant';
 import axios from 'axios';
 
-const DataSetForm = ({ onCancel, onAdd }) => {
+const DataSetForm = ({ onCancel, onAdd, selected }) => {
   const [buttonLoading, setButtonLoading] = useState(false);
   const [form] = Form.useForm();
 
+  useEffect(() => {
+    if (selected && selected.data && selected.data.skill) {
+      form.setFieldsValue({
+        technologyName: selected.data.skill,
+      });
+    }
+  }, [selected, form]);
+
   const onFinish = async (values) => {
-    console.log('Received values:', values);
-    const { categoryName, technologyName, associatedSkills } = values;
+    const { technologyName, associatedSkills } = values;
+
+    if (!technologyName) {
+      showNotification('Error', 'Please enter the technology name.', 'error');
+      return;
+    }
+
+    if (!associatedSkills || associatedSkills.length === 0) {
+      showNotification('Error', 'Please enter at least one associated skill.', 'error');
+      return;
+    }
+
     const payload = {
-      category: categoryName,
       skill_name: technologyName,
       associated_skills: associatedSkills
     };
@@ -22,17 +38,14 @@ const DataSetForm = ({ onCancel, onAdd }) => {
     };
 
     try {
-      if (payload) {
-        setButtonLoading(true);
-        const response = await axios.post(`${PROJECT_URL}/add_skill`, payload, { headers });
-        console.log('API response:', response);
-        setButtonLoading(false);
-        showNotification('Success', 'Skill added successfully!', 'success');
-        form.resetFields();
-        onCancel();
-        onAdd();
-      }
-
+      setButtonLoading(true);
+      const response = await axios.post(`${PROJECT_URL}/add_skill`, payload, { headers });
+      console.log('API response:', response);
+      setButtonLoading(false);
+      showNotification('Success', 'Skill added successfully!', 'success');
+      form.resetFields();
+      onCancel();
+      onAdd();
     } catch (error) {
       setButtonLoading(false);
       showNotification('Error', 'Failed to add skill. Please try again later.', 'error');
@@ -48,20 +61,9 @@ const DataSetForm = ({ onCancel, onAdd }) => {
       name="skillsForm"
       initialValues={{ remember: true }}
       onFinish={onFinish}
+      autoComplete='false'
     >
       <div style={{ marginBottom: "20px" }}><h3>ADD SKILLS</h3></div>
-      {/* <Form.Item
-        label="Category Name"
-        name="categoryName"
-        rules={[
-          {
-            required: false,
-            message: "Please enter the category name!",
-          }
-        ]}
-      >
-        <Input size="large" placeholder="Enter Category" maxLength={50} />
-      </Form.Item> */}
 
       <Form.Item
         label="Technology Name"
@@ -73,7 +75,7 @@ const DataSetForm = ({ onCancel, onAdd }) => {
           }
         ]}
       >
-        <Input size="large" placeholder="Enter Technology" maxLength={50} />
+        <Input size="large" placeholder="Enter Technology" maxLength={50}  autoComplete='off'/>
       </Form.Item>
 
       <Form.Item
@@ -82,7 +84,8 @@ const DataSetForm = ({ onCancel, onAdd }) => {
         rules={[
           {
             required: true,
-            message: "Please enter the associated skills!",
+            message: "Please enter at least one associated skill!",
+            type: 'array'
           }
         ]}
       >
@@ -93,6 +96,7 @@ const DataSetForm = ({ onCancel, onAdd }) => {
           tokenSeparators={[',']}
         />
       </Form.Item>
+
       <Form.Item style={{ textAlign: 'right' }}>
         <Button type='primary' style={{ marginRight: "15px" }} onClick={onCancel}>
           Cancel
@@ -103,7 +107,6 @@ const DataSetForm = ({ onCancel, onAdd }) => {
         </Button>
       </Form.Item>
     </Form>
-
   );
 };
 
